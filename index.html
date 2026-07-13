@@ -859,6 +859,17 @@ function detectIntent(norm){
   if(has(['ola','hola','hello','hi','bom dia','buenos dias','boa tarde','buenas tardes','good morning','good afternoon'])) return 'greeting';
   return 'unknown';
 }
+function detectLanguageSwitch(norm){
+  if(norm.match(/\b(em ingles|fala ingles|falar ingles|in english|speak english|en ingles)\b/)) return 'en';
+  if(norm.match(/\b(em espanhol|fala espanhol|falar espanhol|en espanol|en español|habla espanol|hablas espanol)\b/)) return 'es';
+  if(norm.match(/\b(em portugues|fala portugues|falar portugues|en portugues|habla portugues|hablas portugues)\b/)) return 'pt';
+  return null;
+}
+const LANG_SWITCH_MSG = {
+  pt: "Claro! Podemos continuar em português. 🇵🇹",
+  es: "¡Claro! Seguimos en español. 🇪🇸",
+  en: "Sure! Let's continue in English. 🇬🇧"
+};
 function routeIntent(intent){
   const L = currentLang;
   switch(intent){
@@ -894,6 +905,11 @@ function pickTime(key){
   flow.step = 'name';
   botSay(BOT[currentLang].ask_name_order);
 }
+function useCustomTime(text){
+  flow.data.time = text.trim();
+  flow.step = 'name';
+  botSay(BOT[currentLang].ask_name_order);
+}
 
 /* ---------- fluxo de reserva ---------- */
 async function startReserveFlow(){
@@ -911,6 +927,11 @@ function pickPeople(val){
 function pickDay(key){
   const opt = DAY_OPTIONS.find(d => d.key === key);
   flow.data.day = opt.label[currentLang];
+  flow.step = 'name';
+  botSay(BOT[currentLang].ask_name_reserve);
+}
+function useCustomDay(text){
+  flow.data.day = text.trim();
   flow.step = 'name';
   botSay(BOT[currentLang].ask_name_reserve);
 }
@@ -959,32 +980,45 @@ function sendMessage(text){
   input.value = '';
   suggestionsEl.style.display = 'none';
 
+  const norm0 = normalize(text);
+  const langReq = detectLanguageSwitch(norm0);
+  if(langReq && langReq !== currentLang){
+    applyLanguage(langReq);
+    botSay(LANG_SWITCH_MSG[langReq]);
+    return;
+  }
+
   if(flow && flow.step === 'name'){
     flow.data.name = text.trim();
     handleAfterName();
     return;
   }
   if(flow){
-    const norm = normalize(text);
-    let handled = false;
+    const norm = norm0;
     if(flow.step === 'dish'){
       const found = MENU.find(m => m.alt.some(a => norm.includes(normalize(a))));
-      if(found){ pickDish(found.key); handled = true; }
+      if(found) pickDish(found.key);
+      else botSay(REPROMPT_MSG[currentLang]);
     } else if(flow.step === 'time'){
       const found = TIME_OPTIONS.find(t => t.alt.some(a => norm.includes(normalize(a))));
-      if(found){ pickTime(found.key); handled = true; }
+      if(found) pickTime(found.key);
+      else useCustomTime(text);
     } else if(flow.step === 'people'){
       const found = PEOPLE_OPTIONS.find(p => norm.includes(p));
-      if(found){ pickPeople(found); handled = true; }
+      if(found) pickPeople(found);
+      else {
+        const numMatch = text.match(/\d+/);
+        pickPeople(numMatch ? numMatch[0] : text.trim());
+      }
     } else if(flow.step === 'day'){
       const found = DAY_OPTIONS.find(d => d.alt.some(a => norm.includes(normalize(a))));
-      if(found){ pickDay(found.key); handled = true; }
+      if(found) pickDay(found.key);
+      else useCustomDay(text);
     }
-    if(!handled) botSay(REPROMPT_MSG[currentLang]);
     return;
   }
 
-  routeIntent(detectIntent(normalize(text)));
+  routeIntent(detectIntent(norm0));
 }
 
 sendBtn.addEventListener('click', () => sendMessage(input.value));
