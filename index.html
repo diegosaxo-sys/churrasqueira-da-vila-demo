@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo — Churrasqueira da Vila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* sampled from the real storefront photo */
+    --facade: #6f7581;      /* cladding panel color */
+    --awning: #1c2029;      /* black canopy / near-black */
+    /* sampled from the real logo */
+    --red: #cc2028;
+    --red-deep: #8f151c;
+    --sky: #a5e7ff;
+    --sky-deep: #3faaf2;
+    --wood: #8a7570;        /* muted deck tone */
+    --stone: #e6e6e6;       /* light grey page background */
+    --cream: #f7f4ee;
+    --line: rgba(28,32,41,0.14);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; font-family:'Inter',sans-serif; color:var(--awning); background:var(--stone); }
+  .badge{
+    position:fixed; top:16px; right:16px;
+    background:var(--awning); color:var(--cream);
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    padding:6px 12px; border-radius:999px; z-index:60; opacity:0.9;
+  }
+  header{
+    position:relative;
+    padding:60px 24px 46px;
+    text-align:center;
+    background: linear-gradient(160deg, var(--awning) 0%, #3a2f2f 55%, var(--red-deep) 130%);
+    color:var(--cream);
+  }
+  .logo{
+    width:104px; height:104px; border-radius:50%;
+    border:3px solid var(--cream);
+    overflow:hidden;
+    margin:0 auto 20px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35);
+    background:white;
+  }
+  .logo img{ width:100%; height:100%; object-fit:cover; }
+  h1{
+    font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-size:clamp(1.9rem,5.5vw,3.2rem);
+    line-height:1.05; margin:0 0 14px;
+  }
+  .tagline{
+    font-family:'Oswald',sans-serif; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.08em; font-size:13px; color:var(--red);
+    background:rgba(255,255,255,0.94);
+    display:inline-block; padding:6px 16px; border-radius:999px; margin-bottom:18px;
+  }
+  .sub{ max-width:480px; margin:0 auto; font-size:15px; line-height:1.6; color:rgba(247,244,238,0.9); }
+
+  main{
+    max-width:900px; margin:0 auto; padding:48px 24px 130px; display:grid; gap:28px;
+    position:relative;
+  }
+  main::before{
+    content:"";
+    position:absolute; inset:-24px 0 auto 0; height:calc(100% + 24px);
+    background:
+      radial-gradient(ellipse at top, rgba(111,117,129,0.07), transparent 55%);
+    z-index:-1;
+  }
+  .info-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .info-card{
+    background:white; border:1px solid var(--line); border-radius:12px; padding:22px 20px;
+    border-top: 3px solid var(--facade);
+    box-shadow: 0 4px 16px rgba(28,32,41,0.05);
+  }
+  .info-card.accent{ border-top-color: var(--red); }
+  .info-card .label{
+    font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--red-deep); margin-bottom:8px; font-weight:700;
+  }
+  .info-card .value{ font-family:'Oswald',sans-serif; font-weight:700; font-size:18px; color:var(--awning); text-transform:uppercase; letter-spacing:0.01em; }
+  .info-card .detail{ font-size:13px; color:#5a5254; margin-top:6px; line-height:1.5; }
+  .card-cta{
+    margin-top:12px;
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--red-deep); color:var(--cream);
+    border:none; border-radius:999px;
+    padding:7px 14px; font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .card-cta:hover{ background:var(--red); }
+
+  .hours-table{
+    background:white; border:1px solid var(--line); border-radius:12px; padding:22px 24px;
+    border-top: 3px solid var(--sky-deep);
+    box-shadow: 0 4px 16px rgba(28,32,41,0.05);
+  }
+  .hours-table .label{
+    font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--red-deep); margin-bottom:14px; font-weight:700;
+  }
+  .hours-row{
+    display:flex; justify-content:space-between; padding:7px 0;
+    border-bottom:1px solid var(--line); font-size:13.5px;
+  }
+  .hours-row:last-child{ border-bottom:none; }
+  .hours-row .day{ font-weight:600; color:var(--awning); }
+  .hours-row .time{ color:#5a5254; }
+  .hours-row.closed .time{ color:var(--red-deep); font-weight:700; }
+
+  /* Floating widget */
+  #bubble-wrap{
+    position:fixed; bottom:22px; right:22px; z-index:55;
+    display:flex; align-items:center; gap:10px;
+    flex-direction:row-reverse;
+  }
+  #bubble{
+    -webkit-appearance:none; appearance:none;
+    display:block;
+    width:70px; height:70px; min-width:70px; min-height:70px; max-width:70px; max-height:70px;
+    border-radius:50%;
+    border:3px solid var(--cream);
+    cursor:pointer;
+    box-shadow:0 8px 22px rgba(28,32,41,0.32);
+    background:white;
+    overflow:hidden;
+    padding:0; margin:0; line-height:0;
+    flex:0 0 auto;
+    transition: transform 0.15s ease;
+  }
+  #bubble:hover{ transform: scale(1.06); }
+  #bubble img{ width:100%; height:100%; object-fit:cover; }
+
+  #panel{
+    position:fixed;
+    bottom:96px; right:22px;
+    width:340px;
+    max-width:calc(100vw - 44px);
+    height:460px;
+    background:white;
+    border-radius:16px;
+    box-shadow:0 24px 60px rgba(28,32,41,0.32);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    opacity:0;
+    transform: translateY(12px) scale(0.98);
+    pointer-events:none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index:56;
+  }
+  #panel.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+  .panel-header{
+    background:var(--red-deep); color:var(--cream);
+    padding:14px 16px; display:flex; align-items:center; gap:10px;
+  }
+  .panel-header .avatar{ width:30px; height:30px; border-radius:50%; overflow:hidden; border:1.5px solid rgba(255,255,255,0.7); flex-shrink:0; }
+  .panel-header .avatar img{ width:100%; height:100%; object-fit:cover; }
+  .panel-header .who{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14.5px; text-transform:uppercase; }
+  .panel-header .dot{ width:7px; height:7px; border-radius:50%; background:#7bd68f; box-shadow:0 0 0 3px rgba(123,214,143,0.25); margin-left:6px; }
+  .panel-header .close{ margin-left:auto; background:none; border:none; color:var(--cream); opacity:0.75; cursor:pointer; font-size:18px; line-height:1; }
+
+  .messages{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--stone); }
+  .msg{ max-width:82%; padding:10px 13px; border-radius:13px; font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
+  .msg.bot{ background:white; border:1px solid var(--line); align-self:flex-start; border-bottom-left-radius:4px; }
+  .msg.user{ background:var(--red-deep); color:var(--cream); align-self:flex-end; border-bottom-right-radius:4px; }
+  .msg.typing{ background:white; border:1px solid var(--line); align-self:flex-start; display:flex; gap:4px; padding:12px 14px; }
+  .msg.typing span{ width:5px; height:5px; border-radius:50%; background:var(--wood); opacity:0.5; animation:bounce 1.2s infinite; }
+  .msg.typing span:nth-child(2){ animation-delay:0.15s; }
+  .msg.typing span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes bounce{ 0%,60%,100%{ transform:translateY(0); opacity:0.5; } 30%{ transform:translateY(-3px); opacity:1; } }
+  .composer{ display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--line); background:white; }
+  .composer input{
+    flex:1; border:1px solid var(--line); border-radius:999px; padding:9px 14px;
+    font-size:13.5px; font-family:'Inter',sans-serif; outline:none; background:var(--stone);
+  }
+  .composer input:focus{ border-color:var(--red); }
+  .composer button{
+    background:var(--red-deep); color:var(--cream); border:none; border-radius:999px;
+    padding:0 18px; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .composer button:disabled{ opacity:0.5; cursor:default; }
+  .suggestions{ display:flex; gap:8px; flex-wrap:wrap; padding:0 14px 12px; background:white; }
+  .suggestions button{
+    font-family:'Inter',sans-serif; font-size:11.5px;
+    background:rgba(165,231,255,0.35);
+    border:1px solid var(--line); color:var(--red-deep); padding:6px 11px;
+    border-radius:999px; cursor:pointer;
+  }
+  .suggestions button:hover{ background:rgba(165,231,255,0.6); }
+
+  .footnote{ text-align:center; font-size:12.5px; color:#8a8285; line-height:1.6; max-width:600px; margin:0 auto; }
+  .footnote strong{ color:var(--red-deep); }
+  .caveat{
+    background:#fbeceb; border:1px solid rgba(204,32,40,0.25); border-radius:10px;
+    padding:14px 18px; font-size:13px; color:#5a2224; line-height:1.6; max-width:600px; margin:0 auto;
+  }
+  .lang-switch{
+    position:absolute; top:16px; right:16px; z-index:5;
+    display:flex; gap:6px;
+  }
+  .lang-switch button{
+    width:30px; height:30px; border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.75);
+    font-size:14px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    padding:0; opacity:0.95; transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .lang-switch button[data-lang="pt"]{
+    background: linear-gradient(90deg, #046a38 0%, #046a38 38%, #da020e 38%, #da020e 100%);
+  }
+  .lang-switch button[data-lang="es"]{
+    background: linear-gradient(180deg, #aa151b 0%, #aa151b 25%, #f1bf00 25%, #f1bf00 75%, #aa151b 75%, #aa151b 100%);
+  }
+  .lang-switch button[data-lang="en"]{
+    background: linear-gradient(135deg, #00247d 0%, #00247d 42%, #ffffff 42%, #ffffff 58%, #cf142b 58%, #cf142b 100%);
+  }
+  .lang-switch button:hover{ opacity:1; transform:scale(1.08); }
+  .lang-switch button.active{
+    border-color:var(--red); border-width:2.5px; transform:scale(1.1); opacity:1;
+  }
+  .how-it-works{
+    background:white; border:1px solid var(--line); border-radius:14px; padding:26px 24px;
+    box-shadow: 0 6px 22px rgba(28,32,41,0.06);
+  }
+  .how-it-works .label{
+    font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--red-deep); margin-bottom:4px; font-weight:700;
+  }
+  .how-it-works .headline{
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:20px; color:var(--awning);
+    margin:0 0 18px; letter-spacing:0.01em;
+  }
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .step{ position:relative; padding-left:2px; }
+  .step-num{
+    width:32px; height:32px; border-radius:50%; background:var(--red-deep); color:var(--cream);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:14px; margin-bottom:10px;
+  }
+  .step-title{ font-family:'Oswald',sans-serif; font-weight:700; font-size:14.5px; color:var(--awning); text-transform:uppercase; letter-spacing:0.01em; margin-bottom:5px; }
+  .step-detail{ font-size:13px; color:#5a5254; line-height:1.5; }
+  @media (max-width:640px){
+    .steps{ grid-template-columns:1fr; gap:16px; }
+  }
+
+  #bubble-wrap{ align-items:flex-end; }
+  .bubble-hint{
+    background:var(--awning); color:var(--cream); font-size:12.5px; font-weight:600;
+    padding:9px 14px; border-radius:999px; white-space:nowrap;
+    box-shadow:0 6px 18px rgba(28,32,41,0.28);
+    animation: hint-float 2.6s ease-in-out infinite;
+  }
+  @keyframes hint-float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+  #bubble{ position:relative; }
+  #bubble::before{
+    content:""; position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid var(--red); opacity:0.55;
+    animation: bubble-pulse 2.2s ease-out infinite;
+  }
+  @keyframes bubble-pulse{
+    0%{ transform:scale(0.92); opacity:0.55; }
+    70%{ transform:scale(1.28); opacity:0; }
+    100%{ transform:scale(1.28); opacity:0; }
+  }
+
+    .logo-fallback{ display:flex; align-items:center; justify-content:center; font-size:44px; background:var(--awning); }
+  .bubble-emoji{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:32px; background:var(--awning); }
+  .avatar-emoji{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:15px; background:var(--awning); }
+@media (max-width:640px){
+    .info-grid{ grid-template-columns:1fr; }
+    header{ padding:48px 20px 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="badge">🟢 Demo en vivo — responde de verdad</div>
+
+<div class="lang-switch">
+  <button data-lang="pt" class="active" aria-label="Português" title="Português">🇵🇹</button>
+  <button data-lang="es" aria-label="Español" title="Español">🇪🇸</button>
+  <button data-lang="en" aria-label="English" title="English">🇬🇧</button>
+</div>
+
+<header>
+  <div class="logo logo-fallback">🔥</div>
+  <div class="tagline">A arte de bem grelhar</div>
+  <h1>Churrasqueira da Vila</h1>
+  <p class="sub" data-i18n="hero_sub">O melhor churrasco português, agora também no seu telemóvel.</p>
+</header>
+
+<main>
+  <div class="how-it-works">
+    <div class="label" data-i18n="how_label">Sem filas, sem esperas</div>
+    <div class="headline" data-i18n="how_headline">Como funciona o pedido sem fila</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title" data-i18n="step1_title">Peça pelo telemóvel</div>
+        <div class="step-detail" data-i18n="step1_detail">A qualquer hora do dia, sem esperar na fila do balcão.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title" data-i18n="step2_title">O assistente confirma</div>
+        <div class="step-detail" data-i18n="step2_detail">Prato, hora e nome — tudo tratado em segundos, sem chamadas.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title" data-i18n="step3_title">Levanta sem fila</div>
+        <div class="step-detail" data-i18n="step3_detail">Chega, o pedido já está pronto e confirmado. Entra e sai.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card accent">
+      <div class="label" data-i18n="card1_label">Especialidades</div>
+      <div class="value">Frango de Churrasco</div>
+      <div class="detail" data-i18n="card1_detail">Costeletas de porco, picanha grelhada, sangria da casa.</div>
+    </div>
+    <div class="info-card">
+      <div class="label" data-i18n="card2_label">Serviços</div>
+      <div class="value" data-i18n="card2_value">Local + Take-away</div>
+      <div class="detail" data-i18n="card2_detail">Reserve a sua mesa ou encomenda diretamente pelo assistente.</div>
+      <button class="card-cta" id="cardReserveBtn" data-i18n="card2_cta">Reservar agora</button>
+    </div>
+    <div class="info-card">
+      <div class="label" data-i18n="card3_label">Localização</div>
+      <div class="value">Lousada</div>
+      <div class="detail" data-i18n="card3_detail">R. do Parque Industrial de Silvares, nº 411. Estacionamento grátis.</div>
+    </div>
+  </div>
+
+  <div class="hours-table">
+    <div class="label" data-i18n="hours_label">Horário</div>
+    <div class="hours-row"><span class="day" data-i18n="day_mon">Segunda</span><span class="time">10:00–15:00 · 17:30–23:00</span></div>
+    <div class="hours-row"><span class="day" data-i18n="day_tue">Terça</span><span class="time">10:00–15:00 · 17:30–23:00</span></div>
+    <div class="hours-row"><span class="day" data-i18n="day_wed">Quarta</span><span class="time">10:00–15:00 · 17:30–23:00</span></div>
+    <div class="hours-row closed"><span class="day" data-i18n="day_thu">Quinta</span><span class="time" data-i18n="closed_label">Encerrado</span></div>
+    <div class="hours-row"><span class="day" data-i18n="day_fri">Sexta</span><span class="time">10:00–15:00 · 17:30–23:00</span></div>
+    <div class="hours-row"><span class="day" data-i18n="day_sat">Sábado</span><span class="time" data-i18n="continuous_sat">10:00–23:00 contínuo</span></div>
+    <div class="hours-row"><span class="day" data-i18n="day_sun">Domingo</span><span class="time" data-i18n="continuous_sun">10:00–23:00 contínuo</span></div>
+  </div>
+
+  <p class="caveat">
+    ⚠️ <strong>Nota para ti, Diego:</strong> logo, foto y colores son reales de su Facebook. Horario y servicios vienen de su información oficial. El agente no inventa precios ni "prato do dia", tal como definiste en tu estrategia de fallback.
+  </p>
+
+  <p class="footnote">
+    Esta demo usa la imagen de marca real de <strong>Churrasqueira da Vila</strong> (Lousada), integrada como se vería en su propia web.
+  </p>
+</main>
+
+
+
+<div id="bubble-wrap">
+  <button id="bubble" aria-label="Abrir chat">
+    <span class="bubble-emoji">🔥</span>
+  </button>
+  <div class="bubble-hint" id="bubbleHint" data-i18n="bubble_hint">Peça já o seu jantar 🔥</div>
+</div>
+
+<div id="panel">
+  <div class="panel-header">
+    <div class="avatar"><span class="avatar-emoji">🔥</span></div>
+    <div class="who">Churrasqueira da Vila</div>
+    <div class="dot"></div>
+    <button class="close" id="closeBtn" aria-label="Cerrar chat">&times;</button>
+  </div>
+  <div class="messages" id="messages">
+    <div class="msg bot" data-i18n="greeting">Olá! Bem-vindo à Churrasqueira da Vila 🔥 O império dos grelhados! Posso ajudar com horários, especialidades, reservas ou take-away. Em que posso ajudar?</div>
+  </div>
+  <div class="suggestions" id="suggestions">
+    <button data-q-pt="Estão abertos hoje, quinta-feira?" data-q-es="¿Estáis abiertos hoy, jueves?" data-q-en="Are you open today, Thursday?" data-i18n="sugg1">Abertos hoje?</button>
+    <button data-q-pt="Quero reservar mesa para 4 pessoas no sábado à noite" data-q-es="Quiero reservar mesa para 4 personas el sábado por la noche" data-q-en="I would like to book a table for 4 on Saturday night" data-i18n="sugg2">Reservar mesa</button>
+    <button data-q-pt="Aceitam MB Way?" data-q-es="¿Aceptáis MB Way?" data-q-en="Do you accept MB Way?" data-i18n="sugg3">MB Way?</button>
+  </div>
+  <div class="composer">
+    <input type="text" id="input" data-i18n-placeholder="input_placeholder" placeholder="Escreva a sua pergunta..." />
+    <button id="send" data-i18n="send_btn">Enviar</button>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `Tu es o assistente virtual inteligente da Churrasqueira da Vila — "O império dos grelhados" — um restaurante de grelhados e churrasco de alta qualidade localizado no Parque Industrial de Lousada, Portugal. Esta é uma demonstração para mostrar ao dono como funcionaria o assistente.
+
+### Tom e personalidade
+Amigável, acolhedor, profissional e simpático — representas a hospitalidade portuguesa e o orgulho da casa ("a arte de bem grelhar"). Respostas breves, 2-4 frases.
+
+### Idioma
+Responde na mesma língua em que o cliente escrever (português, espanhol ou inglês).
+
+### Informação oficial de apoio
+- Morada: Rua do Parque Industrial de Silvares, n.º 411, 4620 Lousada, Portugal.
+- Horário: Segunda a sexta 10:00–15:00 e 17:30–23:00. Quinta-feira ENCERRADO (descanso do pessoal). Sábado e domingo contínuo, 10:00–23:00.
+- Especialidades: Frango de Churrasco (o mais elogiado), Costeletas de Porco, Picanha grelhada, e a Sangria da casa (muito famosa).
+- Acompanhamentos: arroz branco, batatas fritas, saladas mistas frescas.
+- Bebidas: vinhos da região (Vinho Verde) e cervejas (Sagres); café e sobremesas caseiras.
+- Serviços: consumo no local e take-away (é comum encomendar o frango com antecedência). Não há entrega ao domicílio própria.
+- Reservas: pessoalmente no restaurante, por telefone, ou por mensagem direta à página de Facebook — confirmamos disponibilidade em breve. Muito recomendado reservar aos fins de semana.
+- Acessibilidade: entrada acessível para cadeiras de rodas.
+- Estacionamento: gratuito nas redondezas do parque industrial.
+- Pagamentos: dinheiro, cartão de crédito/débito e MB Way.
+
+### Preços e menu
+Não inventes preços nem "prato do dia". Não há carta digital publicada. Se perguntarem por preços ou prato do dia, responde algo como: "Os nossos pratos do dia variam para garantir frescura — o melhor é confirmar ao chegar ou ao reservar."
+
+### Reservas (simulação)
+Se um cliente quiser reservar ou encomendar, recolhe os dados (dia, hora, nº de pessoas ou prato) e diz que a equipa vai confirmar a disponibilidade em breve. Isto é uma simulação, não processes reservas reais.`;
+
+// Backend real (multi-cliente, en Render). El propio backend construye el
+// system prompt a partir del Google Sheet, así que ya no hace falta enviar
+// SYSTEM_PROMPT desde aquí (se deja arriba solo como referencia/documentación).
+const BACKEND_URL = "https://agentes-clientes-backend.onrender.com";
+const ID_CLIENTE = "churrasqueira-vila"; // debe existir como fila activa en la pestaña "Clientes" del Sheet
+
+const bubble = document.getElementById('bubble');
+const panel = document.getElementById('panel');
+const closeBtn = document.getElementById('closeBtn');
+const messagesEl = document.getElementById('messages');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+const suggestionsEl = document.getElementById('suggestions');
+
+let history = [];
+let opened = false;
+let currentLang = 'pt';
+
+const TRANSLATIONS = {
+  pt: {
+    hero_sub: "O melhor churrasco português, agora também no seu telemóvel.",
+    card1_label: "Especialidades",
+    card1_detail: "Costeletas de porco, picanha grelhada, sangria da casa.",
+    card2_label: "Serviços",
+    card2_value: "Local + Take-away",
+    card2_detail: "Reserve a sua mesa ou encomenda diretamente pelo assistente.",
+    card2_cta: "Reservar agora",
+    card3_label: "Localização",
+    card3_detail: "R. do Parque Industrial de Silvares, nº 411. Estacionamento grátis.",
+    hours_label: "Horário",
+    day_mon: "Segunda", day_tue: "Terça", day_wed: "Quarta", day_thu: "Quinta",
+    day_fri: "Sexta", day_sat: "Sábado", day_sun: "Domingo",
+    closed_label: "Encerrado",
+    continuous_sat: "10:00–23:00 contínuo",
+    continuous_sun: "10:00–23:00 contínuo",
+    greeting: "Olá! Bem-vindo à Churrasqueira da Vila 🔥 O império dos grelhados! Posso ajudar com horários, especialidades, reservas ou take-away. Em que posso ajudar?",
+    sugg1: "Abertos hoje?", sugg2: "Reservar mesa", sugg3: "MB Way?",
+    input_placeholder: "Escreva a sua pergunta...",
+    send_btn: "Enviar",
+    how_label: "Sem filas, sem esperas",
+    how_headline: "Como funciona o pedido sem fila",
+    step1_title: "Peça pelo telemóvel", step1_detail: "A qualquer hora do dia, sem esperar na fila do balcão.",
+    step2_title: "O assistente confirma", step2_detail: "Prato, hora e nome — tudo tratado em segundos, sem chamadas.",
+    step3_title: "Levanta sem fila", step3_detail: "Chega, o pedido já está pronto e confirmado. Entra e sai.",
+    bubble_hint: "Peça já o seu jantar 🔥"
+  },
+  es: {
+    hero_sub: "Las mejores brasas portuguesas, ahora también en tu móvil.",
+    card1_label: "Especialidades",
+    card1_detail: "Costillas de cerdo, picanha a la brasa, sangría de la casa.",
+    card2_label: "Servicios",
+    card2_value: "Local + Take-away",
+    card2_detail: "Reserva tu mesa o pedido directamente con el asistente.",
+    card2_cta: "Reservar ahora",
+    card3_label: "Ubicación",
+    card3_detail: "R. do Parque Industrial de Silvares, nº 411. Parking gratis.",
+    hours_label: "Horario",
+    day_mon: "Lunes", day_tue: "Martes", day_wed: "Miércoles", day_thu: "Jueves",
+    day_fri: "Viernes", day_sat: "Sábado", day_sun: "Domingo",
+    closed_label: "Cerrado",
+    continuous_sat: "10:00–23:00 continuo",
+    continuous_sun: "10:00–23:00 continuo",
+    greeting: "¡Hola! Bienvenido a Churrasqueira da Vila 🔥 ¡El imperio de las brasas! Puedo ayudarte con horarios, especialidades, reservas o take-away. ¿En qué te ayudo?",
+    sugg1: "¿Abierto hoy?", sugg2: "Reservar mesa", sugg3: "¿MB Way?",
+    input_placeholder: "Escribe tu pregunta...",
+    send_btn: "Enviar",
+    how_label: "Sin colas, sin esperas",
+    how_headline: "Así funciona pedir sin hacer cola",
+    step1_title: "Pide desde el móvil", step1_detail: "A cualquier hora del día, sin esperar en la cola del mostrador.",
+    step2_title: "El asistente confirma", step2_detail: "Plato, hora y nombre — todo resuelto en segundos, sin llamadas.",
+    step3_title: "Recoge sin cola", step3_detail: "Llegas, tu pedido ya está listo y confirmado. Entras y te vas.",
+    bubble_hint: "Pide ya tu cena 🔥"
+  },
+  en: {
+    hero_sub: "The best Portuguese grill, now on your phone too.",
+    card1_label: "Specialties",
+    card1_detail: "Pork ribs, grilled picanha steak, house-made sangria.",
+    card2_label: "Services",
+    card2_value: "Dine-in + Take-away",
+    card2_detail: "Book your table or order directly through the assistant.",
+    card2_cta: "Book now",
+    card3_label: "Location",
+    card3_detail: "R. do Parque Industrial de Silvares, nº 411. Free parking.",
+    hours_label: "Hours",
+    day_mon: "Monday", day_tue: "Tuesday", day_wed: "Wednesday", day_thu: "Thursday",
+    day_fri: "Friday", day_sat: "Saturday", day_sun: "Sunday",
+    closed_label: "Closed",
+    continuous_sat: "10:00 AM–11:00 PM, all day",
+    continuous_sun: "10:00 AM–11:00 PM, all day",
+    greeting: "Hi! Welcome to Churrasqueira da Vila 🔥 The grill empire! I can help with hours, specialties, bookings or take-away. How can I help?",
+    sugg1: "Open today?", sugg2: "Book a table", sugg3: "MB Way?",
+    input_placeholder: "Type your question...",
+    send_btn: "Send",
+    how_label: "No lines, no waiting",
+    how_headline: "How ordering without a line works",
+    step1_title: "Order from your phone", step1_detail: "Any time of day, no waiting in line at the counter.",
+    step2_title: "The assistant confirms", step2_detail: "Dish, time and name — handled in seconds, no phone calls.",
+    step3_title: "Pick up, no line", step3_detail: "You arrive, your order is ready and confirmed. In and out.",
+    bubble_hint: "Order your dinner now 🔥"
+  }
+};
+
+function applyLanguage(lang){
+  currentLang = lang;
+  const dict = TRANSLATIONS[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined){
+      // Only overwrite the live chat greeting if the conversation hasn't started yet
+      if(key === 'greeting' && history.length > 0) return;
+      el.textContent = dict[key];
+    }
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+  document.querySelectorAll('.lang-switch button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+document.querySelectorAll('.lang-switch button').forEach(btn => {
+  btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+});
+
+const bubbleHint = document.getElementById('bubbleHint');
+function openPanel(){
+  opened = true;
+  panel.classList.add('open');
+  if(bubbleHint) bubbleHint.style.display = 'none';
+  input.focus();
+}
+bubble.addEventListener('click', () => {
+  opened = !opened;
+  panel.classList.toggle('open', opened);
+  if(bubbleHint) bubbleHint.style.display = opened ? 'none' : '';
+  if(opened) input.focus();
+});
+const cardReserveBtn = document.getElementById('cardReserveBtn');
+if(cardReserveBtn){
+  cardReserveBtn.addEventListener('click', openPanel);
+}
+closeBtn.addEventListener('click', () => {
+  opened = false;
+  panel.classList.remove('open');
+  if(bubbleHint) bubbleHint.style.display = '';
+});
+
+function addMessage(text, role){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+function addTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+async function sendMessage(text){
+  if(!text || !text.trim()) return;
+  addMessage(text, 'user');
+  history.push({ role:'user', content:text });
+  input.value = '';
+  sendBtn.disabled = true;
+  suggestionsEl.style.display = 'none';
+  const typingEl = addTyping();
+  try{
+    const response = await fetch(BACKEND_URL + "/api/chat", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        id_cliente: ID_CLIENTE,
+        messages: history
+      })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+    const replyText = textBlocks.join('\n') || 'Desculpe, pode repetir a pergunta?';
+    typingEl.remove();
+    addMessage(replyText, 'bot');
+    history.push({ role:'assistant', content: replyText });
+  } catch(err){
+    typingEl.remove();
+    addMessage('Não consigo responder agora. Tente de novo em instantes.', 'bot');
+    console.error(err);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+sendBtn.addEventListener('click', () => sendMessage(input.value));
+input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(input.value); });
+suggestionsEl.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = btn.getAttribute('data-q-' + currentLang) || btn.getAttribute('data-q-pt');
+    sendMessage(q);
+  });
+});
+</script>
+
+</body>
+</html>
