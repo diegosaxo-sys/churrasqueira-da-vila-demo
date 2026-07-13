@@ -858,7 +858,7 @@ const CLOSED_DAY_MSG = {
   es: "Ese día (jueves) estamos cerrados — día de descanso del equipo. ¿Te ayudo a pedir o reservar para otro día?",
   en: "That day (Thursday) we're closed — staff rest day. Want to order or book for a different day instead?"
 };
-function routeIntent(intent, norm){
+function routeIntent(intent, norm, originalText){
   const L = currentLang;
   if((intent === 'order' || intent === 'reserve') && (isClosedDayMention(norm) || isTodayClosed())){
     return botSay(CLOSED_DAY_MSG[L]);
@@ -871,7 +871,7 @@ function routeIntent(intent, norm){
     case 'payment': return botSay(PAYMENT_MSG[L]);
     case 'location': return botSay(LOCATION_MSG[L]);
     case 'greeting': return botSay(TRANSLATIONS[L].greeting);
-    default: return botSay(FALLBACK_MSG[L]);
+    default: return askAgentViaN8n(originalText || norm);
   }
 }
 
@@ -1022,7 +1022,7 @@ function sendMessage(text){
     return;
   }
 
-  askAgentViaN8n(text);
+  routeIntent(detectIntent(norm0), norm0, text);
 }
 
 sendBtn.addEventListener('click', () => sendMessage(input.value));
