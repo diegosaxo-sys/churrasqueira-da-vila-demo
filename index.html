@@ -482,11 +482,28 @@ async function askAgentViaN8n(text){
     if(!res.ok) throw new Error('bad response');
     const data = await res.json();
     typingEl.remove();
-    addMessage(data.reply || FALLBACK_MSG[currentLang], 'bot');
+    let reply = data.reply || FALLBACK_MSG[currentLang];
+    const match = reply.match(/\[\[ORDER_DONE\]\](\{[\s\S]*\})/);
+    if(match){ reply = reply.slice(0, match.index).trim(); }
+    addMessage(reply, 'bot');
+    if(match){
+      try{ triggerOwnerNotification(JSON.parse(match[1])); }catch(e){}
+    }
   }catch(err){
     typingEl.remove();
     addMessage(FALLBACK_MSG[currentLang], 'bot');
   }
+}
+function triggerOwnerNotification(info){
+  const L = currentLang;
+  const label = info.type === 'reserve' ? {pt:'reserva',es:'reserva',en:'booking'}[L] : {pt:'pedido',es:'pedido',en:'order'}[L];
+  const parts = [info.summary, info.total, info.people ? (info.people + ' pers.') : null, info.time].filter(Boolean).join(' — ');
+  document.getElementById('onBody').textContent = `Novo ${label} de ${info.name}: ${parts}`;
+  document.getElementById('ownerNotify').classList.add('show');
+  flow = { type: info.type === 'reserve' ? 'reserve' : 'order', data: {
+    name: info.name, dish: info.summary, time: info.time || '', price: info.total || '',
+    people: info.people || '', day: info.time || ''
+  }};
 }
 const TRANSLATIONS = {
   pt: {
@@ -863,15 +880,8 @@ function routeIntent(intent, norm, originalText){
   if((intent === 'order' || intent === 'reserve') && (isClosedDayMention(norm) || isTodayClosed())){
     return botSay(CLOSED_DAY_MSG[L]);
   }
-  switch(intent){
-    case 'order': return startOrderFlow();
-    case 'reserve': return startReserveFlow();
-    case 'hours': return botSay(hoursAnswer(L));
-    case 'menu': return botSay(MENU_MSG[L]);
-    case 'payment': return botSay(PAYMENT_MSG[L]);
-    case 'location': return botSay(LOCATION_MSG[L]);
-    case 'greeting': return botSay(TRANSLATIONS[L].greeting);
-    default: return askAgentViaN8n(originalText || norm);
+ switch(intent){
+case 'hours': return botSay(hoursAnswer(L));
   }
 }
 
@@ -978,9 +988,19 @@ document.getElementById('onReject').addEventListener('click', () => {
 });
 
 /* ---------- despacho principal ---------- */
+function detectLangFromText(t){
+if(/[ãõç]/i.test(t) || /\b(não|nao|você|voce|obrigad|também|tambem)\b/i.test(t)) return 'pt';
+if(/[ñ¿¡]/i.test(t) || /\b(quiero|gracias|hola|cuánto|cuanto|ustedes|está)\b/i.test(t)) return 'es';
+if(/\b(hello|hi there|thanks|please|would like|book a table|i want)\b/i.test(t)) return 'en';
+return null;
+}
 function sendMessage(text){
-  if(!text || !text.trim()) return;
-  addMessage(text, 'user');
+if(!text || !text.trim()) return;
+if(messagesEl.children.length === 1){
+const autoLang = detectLangFromText(text);
+if(autoLang && autoLang !== currentLang){ applyLanguage(autoLang); }
+}
+addMessage(text, 'user');
   input.value = '';
   suggestionsEl.style.display = 'none';
 
