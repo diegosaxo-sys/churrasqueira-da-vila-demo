@@ -22,12 +22,6 @@
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; font-family:'Inter',sans-serif; color:var(--awning); background:var(--stone); }
-  .badge{
-    position:fixed; top:16px; right:16px;
-    background:var(--awning); color:var(--cream);
-    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
-    padding:6px 12px; border-radius:999px; z-index:60; opacity:0.9;
-  }
   header{
     position:relative;
     padding:60px 24px 46px;
@@ -256,17 +250,36 @@
     margin:0 0 18px; letter-spacing:0.01em;
   }
   .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-  .step{ position:relative; padding-left:2px; }
+  .step{ position:relative; }
+  .step-head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
   .step-num{
-    width:32px; height:32px; border-radius:50%; background:var(--red-deep); color:var(--cream);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Oswald',sans-serif; font-weight:700; font-size:14px; margin-bottom:10px;
+    width:28px; height:28px; border-radius:50%; background:var(--red-deep); color:var(--cream);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:13px;
   }
-  .step-title{ font-family:'Oswald',sans-serif; font-weight:700; font-size:14.5px; color:var(--awning); text-transform:uppercase; letter-spacing:0.01em; margin-bottom:5px; }
-  .step-detail{ font-size:13px; color:#5a5254; line-height:1.5; }
+  .step-title{ font-family:'Oswald',sans-serif; font-weight:700; font-size:14.5px; color:var(--awning); text-transform:uppercase; letter-spacing:0.01em; }
+  .step-detail{ font-size:13px; color:#5a5254; line-height:1.5; padding-left:38px; }
   @media (max-width:640px){
-    .steps{ grid-template-columns:1fr; gap:16px; }
+    .steps{ grid-template-columns:1fr; gap:18px; }
   }
+
+  .menu-preview{
+    background:white; border:1px solid var(--line); border-radius:14px; padding:24px;
+    box-shadow: 0 6px 22px rgba(28,32,41,0.06);
+  }
+  .menu-preview .label{
+    font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--red-deep); margin-bottom:14px; font-weight:700;
+  }
+  .menu-items{ display:grid; gap:10px; }
+  .menu-item{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;
+  }
+  .menu-item:last-child{ border-bottom:none; }
+  .menu-item .mi-name{ color:var(--awning); font-weight:600; }
+  .menu-item .mi-price{ color:var(--red-deep); font-weight:700; font-family:'Oswald',sans-serif; white-space:nowrap; }
+  .menu-note{ font-size:12px; color:#8a8285; margin-top:12px; line-height:1.5; }
 
   .bubble-hint{
     background:var(--awning); color:var(--cream); font-size:12.5px; font-weight:600;
@@ -304,8 +317,6 @@
 </head>
 <body>
 
-<div class="badge">🟢 Demonstração interativa</div>
-
 <div class="lang-switch">
   <button data-lang="pt" class="active" aria-label="Português" title="Português">🇵🇹</button>
   <button data-lang="es" aria-label="Español" title="Español">🇪🇸</button>
@@ -325,21 +336,33 @@
     <div class="headline" data-i18n="how_headline">Como funciona o pedido sem fila</div>
     <div class="steps">
       <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-title" data-i18n="step1_title">Peça pelo telemóvel</div>
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-title" data-i18n="step1_title">Peça pelo telemóvel</div>
+        </div>
         <div class="step-detail" data-i18n="step1_detail">A qualquer hora do dia, sem esperar na fila do balcão.</div>
       </div>
       <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-title" data-i18n="step2_title">O assistente confirma</div>
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-title" data-i18n="step2_title">O assistente confirma</div>
+        </div>
         <div class="step-detail" data-i18n="step2_detail">Prato, hora e nome — tudo tratado em segundos, sem chamadas.</div>
       </div>
       <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-title" data-i18n="step3_title">Levanta sem fila</div>
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-title" data-i18n="step3_title">Levanta sem fila</div>
+        </div>
         <div class="step-detail" data-i18n="step3_detail">Chega, o pedido já está pronto e confirmado. Entra e sai.</div>
       </div>
     </div>
+  </div>
+
+  <div class="menu-preview">
+    <div class="label" data-i18n="menu_preview_label">Menu (exemplo)</div>
+    <div class="menu-items" id="menuItems"></div>
+    <div class="menu-note" data-i18n="menu_preview_note">Preços de exemplo — o assistente pode sugerir outras opções.</div>
   </div>
 
   <div class="info-grid">
@@ -467,7 +490,9 @@ const TRANSLATIONS = {
     step1_title: "Peça pelo telemóvel", step1_detail: "A qualquer hora do dia, sem esperar na fila do balcão.",
     step2_title: "O assistente confirma", step2_detail: "Prato, hora e nome — tudo tratado em segundos, sem chamadas.",
     step3_title: "Levanta sem fila", step3_detail: "Chega, o pedido já está pronto e confirmado. Entra e sai.",
-    bubble_hint: "Peça já o seu jantar 🔥"
+    bubble_hint: "Peça já o seu jantar 🔥",
+    menu_preview_label: "Menu (exemplo)",
+    menu_preview_note: "Preços de exemplo — o assistente pode sugerir outras opções."
   },
   es: {
     hero_sub: "Las mejores brasas portuguesas, ahora también en tu móvil.",
@@ -494,7 +519,9 @@ const TRANSLATIONS = {
     step1_title: "Pide desde el móvil", step1_detail: "A cualquier hora del día, sin esperar en la cola del mostrador.",
     step2_title: "El asistente confirma", step2_detail: "Plato, hora y nombre — todo resuelto en segundos, sin llamadas.",
     step3_title: "Recoge sin cola", step3_detail: "Llegas, tu pedido ya está listo y confirmado. Entras y te vas.",
-    bubble_hint: "Pide ya tu cena 🔥"
+    bubble_hint: "Pide ya tu cena 🔥",
+    menu_preview_label: "Menú (ejemplo)",
+    menu_preview_note: "Precios de ejemplo — el asistente puede sugerir otras opciones."
   },
   en: {
     hero_sub: "The best Portuguese grill, now on your phone too.",
@@ -521,7 +548,9 @@ const TRANSLATIONS = {
     step1_title: "Order from your phone", step1_detail: "Any time of day, no waiting in line at the counter.",
     step2_title: "The assistant confirms", step2_detail: "Dish, time and name — handled in seconds, no phone calls.",
     step3_title: "Pick up, no line", step3_detail: "You arrive, your order is ready and confirmed. In and out.",
-    bubble_hint: "Order your dinner now 🔥"
+    bubble_hint: "Order your dinner now 🔥",
+    menu_preview_label: "Menu (sample)",
+    menu_preview_note: "Sample prices — the assistant can suggest other options."
   }
 };
 
@@ -544,6 +573,7 @@ function applyLanguage(lang){
   });
   const orderBtn = suggestionsEl.querySelector('[data-action="order"]');
   if(orderBtn) orderBtn.textContent = orderBtn.getAttribute('data-l-' + lang);
+  if(typeof renderMenuPreview === 'function') renderMenuPreview(lang);
 }
 
 document.querySelectorAll('.lang-switch button').forEach(btn => {
@@ -629,6 +659,25 @@ const MENU = [
   { key:'costeletas', price:'8,90€', alt:['costeleta','costilla','rib'], label:{pt:'Costeletas de porco', es:'Costillas de cerdo', en:'Pork ribs'} },
   { key:'picanha', price:'14,90€', alt:['picanha','steak'], label:{pt:'Picanha grelhada', es:'Picanha a la brasa', en:'Grilled picanha steak'} }
 ];
+function renderMenuPreview(lang){
+  const wrap = document.getElementById('menuItems');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  MENU.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'menu-item';
+    const name = document.createElement('span');
+    name.className = 'mi-name';
+    name.textContent = m.label[lang];
+    const price = document.createElement('span');
+    price.className = 'mi-price';
+    price.textContent = m.price;
+    row.appendChild(name);
+    row.appendChild(price);
+    wrap.appendChild(row);
+  });
+}
+renderMenuPreview('pt');
 const TIME_OPTIONS = [
   { key:'asap', alt:['rapido','asap','agora','ya','now'], label:{pt:'O mais rápido possível', es:'Lo antes posible', en:'As soon as possible'} },
   { key:'30min', alt:['30','meia hora','media hora','half hour'], label:{pt:'Daqui a 30 min', es:'En 30 min', en:'In 30 min'} },
