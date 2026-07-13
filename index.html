@@ -9,16 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* sampled from the real storefront photo */
-    --facade: #6f7581;      /* cladding panel color */
-    --awning: #1c2029;      /* black canopy / near-black */
-    /* sampled from the real logo */
+    --facade: #6f7581;
+    --awning: #1c2029;
     --red: #cc2028;
     --red-deep: #8f151c;
     --sky: #a5e7ff;
     --sky-deep: #3faaf2;
-    --wood: #8a7570;        /* muted deck tone */
-    --stone: #e6e6e6;       /* light grey page background */
+    --wood: #8a7570;
+    --stone: #e6e6e6;
     --cream: #f7f4ee;
     --line: rgba(28,32,41,0.14);
   }
@@ -112,10 +110,9 @@
   .hours-row .time{ color:#5a5254; }
   .hours-row.closed .time{ color:var(--red-deep); font-weight:700; }
 
-  /* Floating widget */
   #bubble-wrap{
     position:fixed; bottom:22px; right:22px; z-index:55;
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:flex-end; gap:10px;
     flex-direction:row-reverse;
   }
   #bubble{
@@ -131,9 +128,20 @@
     padding:0; margin:0; line-height:0;
     flex:0 0 auto;
     transition: transform 0.15s ease;
+    position:relative;
   }
   #bubble:hover{ transform: scale(1.06); }
   #bubble img{ width:100%; height:100%; object-fit:cover; }
+  #bubble::before{
+    content:""; position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid var(--red); opacity:0.55;
+    animation: bubble-pulse 2.2s ease-out infinite;
+  }
+  @keyframes bubble-pulse{
+    0%{ transform:scale(0.92); opacity:0.55; }
+    70%{ transform:scale(1.28); opacity:0; }
+    100%{ transform:scale(1.28); opacity:0; }
+  }
 
   #panel{
     position:fixed;
@@ -173,6 +181,16 @@
   .msg.typing span:nth-child(2){ animation-delay:0.15s; }
   .msg.typing span:nth-child(3){ animation-delay:0.3s; }
   @keyframes bounce{ 0%,60%,100%{ transform:translateY(0); opacity:0.5; } 30%{ transform:translateY(-3px); opacity:1; } }
+  .msg.quick-replies{ background:transparent; border:none; align-self:flex-start; display:flex; flex-wrap:wrap; gap:6px; padding:2px 0; max-width:100%; }
+  .msg.quick-replies button{
+    font-family:'Inter',sans-serif; font-size:12.5px;
+    background:rgba(165,231,255,0.35);
+    border:1px solid var(--line); color:var(--red-deep); padding:7px 12px;
+    border-radius:999px; cursor:pointer;
+  }
+  .msg.quick-replies button:hover{ background:rgba(165,231,255,0.6); }
+  .msg.quick-replies.locked{ opacity:0.5; }
+  .msg.quick-replies.locked button{ cursor:default; }
   .composer{ display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--line); background:white; }
   .composer input{
     flex:1; border:1px solid var(--line); border-radius:999px; padding:9px 14px;
@@ -192,6 +210,8 @@
     border-radius:999px; cursor:pointer;
   }
   .suggestions button:hover{ background:rgba(165,231,255,0.6); }
+  .suggestions button.primary{ background:var(--red-deep); color:var(--cream); border-color:var(--red-deep); }
+  .suggestions button.primary:hover{ background:var(--red); }
 
   .footnote{ text-align:center; font-size:12.5px; color:#8a8285; line-height:1.6; max-width:600px; margin:0 auto; }
   .footnote strong{ color:var(--red-deep); }
@@ -248,7 +268,6 @@
     .steps{ grid-template-columns:1fr; gap:16px; }
   }
 
-  #bubble-wrap{ align-items:flex-end; }
   .bubble-hint{
     background:var(--awning); color:var(--cream); font-size:12.5px; font-weight:600;
     padding:9px 14px; border-radius:999px; white-space:nowrap;
@@ -256,21 +275,27 @@
     animation: hint-float 2.6s ease-in-out infinite;
   }
   @keyframes hint-float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
-  #bubble{ position:relative; }
-  #bubble::before{
-    content:""; position:absolute; inset:-6px; border-radius:50%;
-    border:2px solid var(--red); opacity:0.55;
-    animation: bubble-pulse 2.2s ease-out infinite;
-  }
-  @keyframes bubble-pulse{
-    0%{ transform:scale(0.92); opacity:0.55; }
-    70%{ transform:scale(1.28); opacity:0; }
-    100%{ transform:scale(1.28); opacity:0; }
-  }
 
-    .logo-fallback{ display:flex; align-items:center; justify-content:center; font-size:44px; background:var(--awning); }
+  .logo-fallback{ display:flex; align-items:center; justify-content:center; font-size:44px; background:var(--awning); }
   .bubble-emoji{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:32px; background:var(--awning); }
   .avatar-emoji{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:15px; background:var(--awning); }
+
+  #ownerNotify{
+    position:fixed; top:-200px; left:50%; transform:translateX(-50%);
+    width:330px; max-width:calc(100vw - 32px);
+    background:white; border-radius:14px; box-shadow:0 20px 50px rgba(28,32,41,0.35);
+    border:1px solid var(--line); border-top:4px solid var(--red-deep);
+    padding:16px 18px; z-index:80;
+    transition: top 0.45s ease;
+  }
+  #ownerNotify.show{ top:20px; }
+  #ownerNotify .on-label{ font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--red-deep); font-weight:700; margin-bottom:8px; }
+  #ownerNotify .on-body{ font-size:13.5px; line-height:1.5; color:var(--awning); margin-bottom:14px; }
+  #ownerNotify .on-actions{ display:flex; gap:8px; }
+  #ownerNotify button{ flex:1; border:none; border-radius:999px; padding:9px 0; font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; }
+  #ownerNotify .accept{ background:#1f8f4a; color:white; }
+  #ownerNotify .reject{ background:#e2e2e2; color:var(--awning); }
+
 @media (max-width:640px){
     .info-grid{ grid-template-columns:1fr; }
     header{ padding:48px 20px 36px; }
@@ -279,7 +304,7 @@
 </head>
 <body>
 
-<div class="badge">🟢 Demo en vivo — responde de verdad</div>
+<div class="badge">🟢 Demonstração interativa</div>
 
 <div class="lang-switch">
   <button data-lang="pt" class="active" aria-label="Português" title="Português">🇵🇹</button>
@@ -348,15 +373,13 @@
   </div>
 
   <p class="caveat">
-    ⚠️ <strong>Nota para ti, Diego:</strong> logo, foto y colores son reales de su Facebook. Horario y servicios vienen de su información oficial. El agente no inventa precios ni "prato do dia", tal como definiste en tu estrategia de fallback.
+    ⚠️ <strong>Nota para ti, Diego:</strong> logo, cores e horário são reais do Facebook/Instagram. O assistente nunca inventa preços — usa sempre os dados reais que o dono confirmar.
   </p>
 
   <p class="footnote">
-    Esta demo usa la imagen de marca real de <strong>Churrasqueira da Vila</strong> (Lousada), integrada como se vería en su propia web.
+    Esta demo usa a imagem de marca real da <strong>Churrasqueira da Vila</strong> (Lousada), tal como apareceria na sua própria web.
   </p>
 </main>
-
-
 
 <div id="bubble-wrap">
   <button id="bubble" aria-label="Abrir chat">
@@ -376,8 +399,9 @@
     <div class="msg bot" data-i18n="greeting">Olá! Bem-vindo à Churrasqueira da Vila 🔥 O império dos grelhados! Posso ajudar com horários, especialidades, reservas ou take-away. Em que posso ajudar?</div>
   </div>
   <div class="suggestions" id="suggestions">
-    <button data-q-pt="Estão abertos hoje, quinta-feira?" data-q-es="¿Estáis abiertos hoy, jueves?" data-q-en="Are you open today, Thursday?" data-i18n="sugg1">Abertos hoje?</button>
-    <button data-q-pt="Quero reservar mesa para 4 pessoas no sábado à noite" data-q-es="Quiero reservar mesa para 4 personas el sábado por la noche" data-q-en="I would like to book a table for 4 on Saturday night" data-i18n="sugg2">Reservar mesa</button>
+    <button class="primary" data-action="order" data-l-pt="🍗 Fazer pedido" data-l-es="🍗 Hacer pedido" data-l-en="🍗 Order food">🍗 Fazer pedido</button>
+    <button data-q-pt="Estão abertos hoje?" data-q-es="¿Estáis abiertos hoy?" data-q-en="Are you open today?" data-i18n="sugg1">Abertos hoje?</button>
+    <button data-q-pt="Quero reservar mesa" data-q-es="Quiero reservar mesa" data-q-en="I would like to book a table" data-i18n="sugg2">Reservar mesa</button>
     <button data-q-pt="Aceitam MB Way?" data-q-es="¿Aceptáis MB Way?" data-q-en="Do you accept MB Way?" data-i18n="sugg3">MB Way?</button>
   </div>
   <div class="composer">
@@ -386,38 +410,23 @@
   </div>
 </div>
 
+<div id="ownerNotify">
+  <div class="on-label">📲 Simulação — telemóvel do dono (Rodrigo)</div>
+  <div class="on-body" id="onBody"></div>
+  <div class="on-actions">
+    <button class="accept" id="onAccept">✅ Aceitar</button>
+    <button class="reject" id="onReject">❌ Recusar</button>
+  </div>
+</div>
+
 <script>
-const SYSTEM_PROMPT = `Tu es o assistente virtual inteligente da Churrasqueira da Vila — "O império dos grelhados" — um restaurante de grelhados e churrasco de alta qualidade localizado no Parque Industrial de Lousada, Portugal. Esta é uma demonstração para mostrar ao dono como funcionaria o assistente.
-
-### Tom e personalidade
-Amigável, acolhedor, profissional e simpático — representas a hospitalidade portuguesa e o orgulho da casa ("a arte de bem grelhar"). Respostas breves, 2-4 frases.
-
-### Idioma
-Responde na mesma língua em que o cliente escrever (português, espanhol ou inglês).
-
-### Informação oficial de apoio
-- Morada: Rua do Parque Industrial de Silvares, n.º 411, 4620 Lousada, Portugal.
-- Horário: Segunda a sexta 10:00–15:00 e 17:30–23:00. Quinta-feira ENCERRADO (descanso do pessoal). Sábado e domingo contínuo, 10:00–23:00.
-- Especialidades: Frango de Churrasco (o mais elogiado), Costeletas de Porco, Picanha grelhada, e a Sangria da casa (muito famosa).
-- Acompanhamentos: arroz branco, batatas fritas, saladas mistas frescas.
-- Bebidas: vinhos da região (Vinho Verde) e cervejas (Sagres); café e sobremesas caseiras.
-- Serviços: consumo no local e take-away (é comum encomendar o frango com antecedência). Não há entrega ao domicílio própria.
-- Reservas: pessoalmente no restaurante, por telefone, ou por mensagem direta à página de Facebook — confirmamos disponibilidade em breve. Muito recomendado reservar aos fins de semana.
-- Acessibilidade: entrada acessível para cadeiras de rodas.
-- Estacionamento: gratuito nas redondezas do parque industrial.
-- Pagamentos: dinheiro, cartão de crédito/débito e MB Way.
-
-### Preços e menu
-Não inventes preços nem "prato do dia". Não há carta digital publicada. Se perguntarem por preços ou prato do dia, responde algo como: "Os nossos pratos do dia variam para garantir frescura — o melhor é confirmar ao chegar ou ao reservar."
-
-### Reservas (simulação)
-Se um cliente quiser reservar ou encomendar, recolhe os dados (dia, hora, nº de pessoas ou prato) e diz que a equipa vai confirmar a disponibilidade em breve. Isto é uma simulação, não processes reservas reais.`;
-
-// Backend real (multi-cliente, en Render). El propio backend construye el
-// system prompt a partir del Google Sheet, así que ya no hace falta enviar
-// SYSTEM_PROMPT desde aquí (se deja arriba solo como referencia/documentación).
-const BACKEND_URL = "https://agentes-clientes-backend.onrender.com";
-const ID_CLIENTE = "churrasqueira-vila"; // debe existir como fila activa en la pestaña "Clientes" del Sheet
+/* ============================================================
+   Churrasqueira da Vila — demo 100% autónoma (sem API/backend).
+   Todo o fluxo de conversa, pedido e reserva corre no navegador,
+   com dados reais do negócio (horário, especialidades, preços,
+   morada, pagamentos). Pensado para funcionar sempre, mesmo sem
+   ligação a um backend com custos — ideal para demos comerciais.
+   ============================================================ */
 
 const bubble = document.getElementById('bubble');
 const panel = document.getElementById('panel');
@@ -426,10 +435,11 @@ const messagesEl = document.getElementById('messages');
 const input = document.getElementById('input');
 const sendBtn = document.getElementById('send');
 const suggestionsEl = document.getElementById('suggestions');
+const bubbleHint = document.getElementById('bubbleHint');
 
-let history = [];
 let opened = false;
 let currentLang = 'pt';
+let flow = null; // { type:'order'|'reserve', step, data:{} }
 
 const TRANSLATIONS = {
   pt: {
@@ -521,8 +531,7 @@ function applyLanguage(lang){
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if(dict[key] !== undefined){
-      // Only overwrite the live chat greeting if the conversation hasn't started yet
-      if(key === 'greeting' && history.length > 0) return;
+      if(key === 'greeting' && messagesEl.children.length > 1) return;
       el.textContent = dict[key];
     }
   });
@@ -533,13 +542,14 @@ function applyLanguage(lang){
   document.querySelectorAll('.lang-switch button').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
+  const orderBtn = suggestionsEl.querySelector('[data-action="order"]');
+  if(orderBtn) orderBtn.textContent = orderBtn.getAttribute('data-l-' + lang);
 }
 
 document.querySelectorAll('.lang-switch button').forEach(btn => {
   btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
 });
 
-const bubbleHint = document.getElementById('bubbleHint');
 function openPanel(){
   opened = true;
   panel.classList.add('open');
@@ -554,7 +564,7 @@ bubble.addEventListener('click', () => {
 });
 const cardReserveBtn = document.getElementById('cardReserveBtn');
 if(cardReserveBtn){
-  cardReserveBtn.addEventListener('click', openPanel);
+  cardReserveBtn.addEventListener('click', () => { openPanel(); });
 }
 closeBtn.addEventListener('click', () => {
   opened = false;
@@ -562,6 +572,7 @@ closeBtn.addEventListener('click', () => {
   if(bubbleHint) bubbleHint.style.display = '';
 });
 
+/* ---------- helpers de chat ---------- */
 function addMessage(text, role){
   const div = document.createElement('div');
   div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
@@ -578,42 +589,318 @@ function addTyping(){
   messagesEl.scrollTop = messagesEl.scrollHeight;
   return div;
 }
-async function sendMessage(text){
-  if(!text || !text.trim()) return;
-  addMessage(text, 'user');
-  history.push({ role:'user', content:text });
-  input.value = '';
-  sendBtn.disabled = true;
-  suggestionsEl.style.display = 'none';
+function botSay(text, delay){
+  if(delay === undefined) delay = 550 + Math.random()*350;
   const typingEl = addTyping();
-  try{
-    const response = await fetch(BACKEND_URL + "/api/chat", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        id_cliente: ID_CLIENTE,
-        messages: history
-      })
+  return new Promise(resolve => {
+    setTimeout(() => {
+      typingEl.remove();
+      addMessage(text, 'bot');
+      resolve();
+    }, delay);
+  });
+}
+function addQuickReplies(options, onPick){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg quick-replies';
+  options.forEach(opt => {
+    const b = document.createElement('button');
+    b.textContent = opt.label;
+    b.addEventListener('click', () => {
+      if(wrap.classList.contains('locked')) return;
+      wrap.classList.add('locked');
+      wrap.querySelectorAll('button').forEach(x => x.disabled = true);
+      addMessage(opt.label, 'user');
+      onPick(opt.value);
     });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error);
-    const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
-    const replyText = textBlocks.join('\n') || 'Desculpe, pode repetir a pergunta?';
-    typingEl.remove();
-    addMessage(replyText, 'bot');
-    history.push({ role:'assistant', content: replyText });
-  } catch(err){
-    typingEl.remove();
-    addMessage('Não consigo responder agora. Tente de novo em instantes.', 'bot');
-    console.error(err);
-  } finally {
-    sendBtn.disabled = false;
+    wrap.appendChild(b);
+  });
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function normalize(s){
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/* ---------- dados reais do negócio ---------- */
+const MENU = [
+  { key:'frango_inteiro', price:'17,50€', alt:['frango inteiro','pollo entero','whole chicken'], label:{pt:'Frango de churrasco inteiro', es:'Pollo de churrasco entero', en:'Whole grilled chicken'} },
+  { key:'frango_meio', price:'9,50€', alt:['meio frango','medio pollo','half chicken'], label:{pt:'Meio frango de churrasco', es:'Medio pollo de churrasco', en:'Half grilled chicken'} },
+  { key:'costeletas', price:'8,90€', alt:['costeleta','costilla','rib'], label:{pt:'Costeletas de porco', es:'Costillas de cerdo', en:'Pork ribs'} },
+  { key:'picanha', price:'14,90€', alt:['picanha','steak'], label:{pt:'Picanha grelhada', es:'Picanha a la brasa', en:'Grilled picanha steak'} }
+];
+const TIME_OPTIONS = [
+  { key:'asap', alt:['rapido','asap','agora','ya','now'], label:{pt:'O mais rápido possível', es:'Lo antes posible', en:'As soon as possible'} },
+  { key:'30min', alt:['30','meia hora','media hora','half hour'], label:{pt:'Daqui a 30 min', es:'En 30 min', en:'In 30 min'} },
+  { key:'1h', alt:['1 hora','uma hora','una hora','1 hour'], label:{pt:'Daqui a 1 hora', es:'En 1 hora', en:'In 1 hour'} }
+];
+const PEOPLE_OPTIONS = ['2', '4', '6'];
+const DAY_OPTIONS = [
+  { key:'today', alt:['hoje','hoy','today'], label:{pt:'Hoje', es:'Hoy', en:'Today'} },
+  { key:'tomorrow', alt:['amanha','manana','tomorrow'], label:{pt:'Amanhã', es:'Mañana', en:'Tomorrow'} },
+  { key:'saturday', alt:['sabado','saturday'], label:{pt:'Sábado', es:'Sábado', en:'Saturday'} }
+];
+const DAY_NAMES = {
+  pt: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+  es: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
+  en: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+};
+function getWindowsForDay(idx){
+  if(idx === 4) return [];
+  if(idx === 0 || idx === 6) return [{from:'10:00', to:'23:00'}];
+  return [{from:'10:00', to:'15:00'}, {from:'17:30', to:'23:00'}];
+}
+function formatWindows(windows, lang){
+  const joinWord = {pt:'e', es:'y', en:'and'}[lang];
+  return windows.map(w => `${w.from}–${w.to}`).join(` ${joinWord} `);
+}
+function hoursAnswer(lang){
+  const d = new Date().getDay();
+  const dayName = DAY_NAMES[lang][d];
+  const windows = getWindowsForDay(d);
+  if(windows.length){
+    const txt = formatWindows(windows, lang);
+    return {
+      pt: `Sim! Hoje é ${dayName} e estamos abertos das ${txt}. 🔥`,
+      es: `¡Sí! Hoy es ${dayName} y estamos abiertos de ${txt}. 🔥`,
+      en: `Yes! Today is ${dayName} and we're open ${txt}. 🔥`
+    }[lang];
+  }
+  return {
+    pt: `Hoje, ${dayName}, estamos encerrados (dia de descanso da equipa). Mas já pode encomendar para amanhã, ou reservar para o fim de semana!`,
+    es: `Hoy, ${dayName}, estamos cerrados (día de descanso del equipo). ¡Pero ya puedes pedir para mañana, o reservar para el fin de semana!`,
+    en: `Today, ${dayName}, we're closed (staff rest day). But you can already order for tomorrow, or book for the weekend!`
+  }[lang];
+}
+const MENU_MSG = {
+  pt: "Temos: 🍗 Frango de churrasco inteiro — 17,50€ (meio frango — 9,50€) · 🥩 Costeletas de porco — 8,90€ · 🥩 Picanha grelhada — 14,90€. Acompanha arroz, batatas ou salada. Quer fazer um pedido?",
+  es: "Tenemos: 🍗 Pollo de churrasco entero — 17,50€ (medio pollo — 9,50€) · 🥩 Costillas de cerdo — 8,90€ · 🥩 Picanha a la brasa — 14,90€. Acompaña arroz, patatas o ensalada. ¿Quieres hacer un pedido?",
+  en: "We have: 🍗 Whole grilled chicken — €17.50 (half chicken — €9.50) · 🥩 Pork ribs — €8.90 · 🥩 Grilled picanha steak — €14.90. Served with rice, fries or salad. Want to place an order?"
+};
+const LOCATION_MSG = {
+  pt: "Estamos na Rua do Parque Industrial de Silvares, nº 411, Lousada — com estacionamento gratuito mesmo ao lado. 📍",
+  es: "Estamos en Rua do Parque Industrial de Silvares, nº 411, Lousada — con parking gratuito justo al lado. 📍",
+  en: "We're at Rua do Parque Industrial de Silvares, nº 411, Lousada — with free parking right next door. 📍"
+};
+const PAYMENT_MSG = {
+  pt: "Aceitamos dinheiro, cartão de crédito/débito e MB Way. 💳",
+  es: "Aceptamos efectivo, tarjeta de crédito/débito y MB Way. 💳",
+  en: "We accept cash, credit/debit card and MB Way. 💳"
+};
+const FALLBACK_MSG = {
+  pt: "Não tenho essa informação à mão, mas posso ajudar com horários, especialidades, reservas ou fazer um pedido. O que prefere?",
+  es: "No tengo esa información a mano, pero puedo ayudarte con horarios, especialidades, reservas o hacer un pedido. ¿Qué prefieres?",
+  en: "I don't have that on hand, but I can help with hours, specialties, bookings or placing an order. What would you like?"
+};
+const REPROMPT_MSG = {
+  pt: "Pode escolher uma das opções acima 👆",
+  es: "Puedes elegir una de las opciones de arriba 👆",
+  en: "Please pick one of the options above 👆"
+};
+const ORDER_TRIGGER_LABEL = { pt: 'Quero fazer um pedido', es: 'Quiero hacer un pedido', en: 'I want to place an order' };
+
+const BOT = {
+  pt: {
+    ask_dish: "Ótimo! O que gostaria de encomendar?",
+    ask_time: "Perfeito. Para quando gostaria de levantar o pedido?",
+    ask_name_order: "Em nome de quem fica o pedido?",
+    sending_order: "A enviar o pedido para o Rodrigo...",
+    ask_people: "Com certeza! Para quantas pessoas?",
+    ask_day: "Para quando gostaria de reservar?",
+    ask_name_reserve: "Em nome de quem fica a reserva?",
+    sending_reserve: "A enviar o pedido de reserva para o Rodrigo...",
+    accepted_order: (dish, time) => `🎉 Pedido confirmado pelo Rodrigo! ${dish} — pronto: ${time}. Obrigado por escolher a Churrasqueira da Vila!`,
+    accepted_reserve: (people, day) => `🎉 Reserva confirmada pelo Rodrigo! Mesa para ${people} pessoas guardada para ${day}. Até já!`,
+    rejected: "De momento não conseguimos confirmar para essa hora. Ligue-nos para combinar uma alternativa: 255 813 337."
+  },
+  es: {
+    ask_dish: "¡Genial! ¿Qué te gustaría pedir?",
+    ask_time: "Perfecto. ¿Para cuándo quieres recoger el pedido?",
+    ask_name_order: "¿A nombre de quién dejamos el pedido?",
+    sending_order: "Enviando el pedido a Rodrigo...",
+    ask_people: "¡Claro! ¿Para cuántas personas?",
+    ask_day: "¿Para cuándo te gustaría reservar?",
+    ask_name_reserve: "¿A nombre de quién dejamos la reserva?",
+    sending_reserve: "Enviando la reserva a Rodrigo...",
+    accepted_order: (dish, time) => `🎉 ¡Pedido confirmado por Rodrigo! ${dish} — listo: ${time}. ¡Gracias por elegir Churrasqueira da Vila!`,
+    accepted_reserve: (people, day) => `🎉 ¡Reserva confirmada por Rodrigo! Mesa para ${people} personas guardada para ${day}. ¡Hasta ahora!`,
+    rejected: "De momento no podemos confirmar esa hora. Llámanos para buscar una alternativa: 255 813 337."
+  },
+  en: {
+    ask_dish: "Great! What would you like to order?",
+    ask_time: "Perfect. When would you like to pick up the order?",
+    ask_name_order: "What name should we put the order under?",
+    sending_order: "Sending the order to Rodrigo...",
+    ask_people: "Sure! For how many people?",
+    ask_day: "When would you like to book for?",
+    ask_name_reserve: "What name should we put the booking under?",
+    sending_reserve: "Sending the booking to Rodrigo...",
+    accepted_order: (dish, time) => `🎉 Order confirmed by Rodrigo! ${dish} — ready: ${time}. Thanks for choosing Churrasqueira da Vila!`,
+    accepted_reserve: (people, day) => `🎉 Booking confirmed by Rodrigo! Table for ${people} booked for ${day}. See you soon!`,
+    rejected: "We can't confirm that time right now. Give us a call to find an alternative: 255 813 337."
+  }
+};
+const ON_SUMMARY_ORDER = {
+  pt: d => `Novo pedido de ${d.name}: ${d.dish} (${d.price}) — levantamento: ${d.time}.`,
+  es: d => `Nuevo pedido de ${d.name}: ${d.dish} (${d.price}) — recogida: ${d.time}.`,
+  en: d => `New order from ${d.name}: ${d.dish} (${d.price}) — pickup: ${d.time}.`
+};
+const ON_SUMMARY_RESERVE = {
+  pt: d => `Nova reserva de ${d.name}: mesa para ${d.people} pessoas, ${d.day}.`,
+  es: d => `Nueva reserva de ${d.name}: mesa para ${d.people} personas, ${d.day}.`,
+  en: d => `New booking from ${d.name}: table for ${d.people} people, ${d.day}.`
+};
+
+/* ---------- deteção de intenção ---------- */
+function detectIntent(norm){
+  const has = (arr) => arr.some(k => norm.includes(k));
+  if(has(['pedido','encomendar','pedir','order','take-away','takeaway','para levar','para llevar','tenho fome','tengo hambre','jantar','cenar'])) return 'order';
+  if(has(['reservar','reserva','mesa','table','book'])) return 'reserve';
+  if(has(['horario','aberto','abierto','open','fechado','cerrado','closed','hoje','hoy','today','amanha','manana','tomorrow'])) return 'hours';
+  if(has(['preco','precio','price','menu','carta','quanto custa','cuanto cuesta','how much','frango','costeleta','picanha'])) return 'menu';
+  if(has(['mb way','cartao','tarjeta','card','dinheiro','efectivo','cash','pagamento','pago','payment'])) return 'payment';
+  if(has(['onde','donde','where','morada','direccion','address','estacionamento','parking','aparcamiento','localizacao','ubicacion','location'])) return 'location';
+  if(has(['ola','hola','hello','hi','bom dia','buenos dias','boa tarde','buenas tardes','good morning','good afternoon'])) return 'greeting';
+  return 'unknown';
+}
+function routeIntent(intent){
+  const L = currentLang;
+  switch(intent){
+    case 'order': return startOrderFlow();
+    case 'reserve': return startReserveFlow();
+    case 'hours': return botSay(hoursAnswer(L));
+    case 'menu': return botSay(MENU_MSG[L]);
+    case 'payment': return botSay(PAYMENT_MSG[L]);
+    case 'location': return botSay(LOCATION_MSG[L]);
+    case 'greeting': return botSay(TRANSLATIONS[L].greeting);
+    default: return botSay(FALLBACK_MSG[L]);
   }
 }
+
+/* ---------- fluxo de pedido ---------- */
+async function startOrderFlow(){
+  flow = { type:'order', step:'dish', data:{} };
+  await botSay(BOT[currentLang].ask_dish);
+  addQuickReplies(MENU.map(m => ({ label: `${m.label[currentLang]} — ${m.price}`, value: m.key })), pickDish);
+}
+function pickDish(key){
+  const item = MENU.find(m => m.key === key);
+  flow.data.dish = item.label[currentLang];
+  flow.data.price = item.price;
+  flow.step = 'time';
+  botSay(BOT[currentLang].ask_time).then(() => {
+    addQuickReplies(TIME_OPTIONS.map(t => ({ label: t.label[currentLang], value: t.key })), pickTime);
+  });
+}
+function pickTime(key){
+  const opt = TIME_OPTIONS.find(t => t.key === key);
+  flow.data.time = opt.label[currentLang];
+  flow.step = 'name';
+  botSay(BOT[currentLang].ask_name_order);
+}
+
+/* ---------- fluxo de reserva ---------- */
+async function startReserveFlow(){
+  flow = { type:'reserve', step:'people', data:{} };
+  await botSay(BOT[currentLang].ask_people);
+  addQuickReplies(PEOPLE_OPTIONS.map(p => ({ label: p + ' 👤', value: p })), pickPeople);
+}
+function pickPeople(val){
+  flow.data.people = val;
+  flow.step = 'day';
+  botSay(BOT[currentLang].ask_day).then(() => {
+    addQuickReplies(DAY_OPTIONS.map(d => ({ label: d.label[currentLang], value: d.key })), pickDay);
+  });
+}
+function pickDay(key){
+  const opt = DAY_OPTIONS.find(d => d.key === key);
+  flow.data.day = opt.label[currentLang];
+  flow.step = 'name';
+  botSay(BOT[currentLang].ask_name_reserve);
+}
+
+/* ---------- fecho comum: nome -> envio -> notificação ao dono ---------- */
+async function handleAfterName(){
+  const isOrder = flow.type === 'order';
+  await botSay(isOrder ? BOT[currentLang].sending_order : BOT[currentLang].sending_reserve, 1100);
+  setTimeout(showOwnerNotification, 500);
+}
+function showOwnerNotification(){
+  const L = currentLang;
+  const isOrder = flow.type === 'order';
+  const summary = isOrder ? ON_SUMMARY_ORDER[L](flow.data) : ON_SUMMARY_RESERVE[L](flow.data);
+  document.getElementById('onBody').textContent = summary;
+  document.getElementById('ownerNotify').classList.add('show');
+}
+document.getElementById('onAccept').addEventListener('click', () => {
+  if(!flow) return;
+  document.getElementById('ownerNotify').classList.remove('show');
+  const savedFlow = flow;
+  setTimeout(() => {
+    const L = currentLang;
+    const msg = savedFlow.type === 'order'
+      ? BOT[L].accepted_order(savedFlow.data.dish, savedFlow.data.time)
+      : BOT[L].accepted_reserve(savedFlow.data.people, savedFlow.data.day);
+    botSay(msg, 400);
+    flow = null;
+    suggestionsEl.style.display = 'flex';
+  }, 450);
+});
+document.getElementById('onReject').addEventListener('click', () => {
+  if(!flow) return;
+  document.getElementById('ownerNotify').classList.remove('show');
+  setTimeout(() => {
+    botSay(BOT[currentLang].rejected, 400);
+    flow = null;
+    suggestionsEl.style.display = 'flex';
+  }, 450);
+});
+
+/* ---------- despacho principal ---------- */
+function sendMessage(text){
+  if(!text || !text.trim()) return;
+  addMessage(text, 'user');
+  input.value = '';
+  suggestionsEl.style.display = 'none';
+
+  if(flow && flow.step === 'name'){
+    flow.data.name = text.trim();
+    handleAfterName();
+    return;
+  }
+  if(flow){
+    const norm = normalize(text);
+    let handled = false;
+    if(flow.step === 'dish'){
+      const found = MENU.find(m => m.alt.some(a => norm.includes(normalize(a))));
+      if(found){ pickDish(found.key); handled = true; }
+    } else if(flow.step === 'time'){
+      const found = TIME_OPTIONS.find(t => t.alt.some(a => norm.includes(normalize(a))));
+      if(found){ pickTime(found.key); handled = true; }
+    } else if(flow.step === 'people'){
+      const found = PEOPLE_OPTIONS.find(p => norm.includes(p));
+      if(found){ pickPeople(found); handled = true; }
+    } else if(flow.step === 'day'){
+      const found = DAY_OPTIONS.find(d => d.alt.some(a => norm.includes(normalize(a))));
+      if(found){ pickDay(found.key); handled = true; }
+    }
+    if(!handled) botSay(REPROMPT_MSG[currentLang]);
+    return;
+  }
+
+  routeIntent(detectIntent(normalize(text)));
+}
+
 sendBtn.addEventListener('click', () => sendMessage(input.value));
 input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(input.value); });
 suggestionsEl.querySelectorAll('button').forEach(btn => {
   btn.addEventListener('click', () => {
+    if(btn.dataset.action === 'order'){
+      addMessage(ORDER_TRIGGER_LABEL[currentLang], 'user');
+      suggestionsEl.style.display = 'none';
+      startOrderFlow();
+      return;
+    }
     const q = btn.getAttribute('data-q-' + currentLang) || btn.getAttribute('data-q-pt');
     sendMessage(q);
   });
