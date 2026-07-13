@@ -818,9 +818,9 @@ function detectIntent(norm){
   return 'unknown';
 }
 function detectLanguageSwitch(norm){
-  if(norm.match(/\b(em ingles|fala ingles|falar ingles|in english|speak english|en ingles)\b/)) return 'en';
-  if(norm.match(/\b(em espanhol|fala espanhol|falar espanhol|en espanol|en español|habla espanol|hablas espanol)\b/)) return 'es';
-  if(norm.match(/\b(em portugues|fala portugues|falar portugues|en portugues|habla portugues|hablas portugues)\b/)) return 'pt';
+  if(/\b(ingles|english)\b/.test(norm)) return 'en';
+  if(/\b(espanhol|espanol|spanish)\b/.test(norm)) return 'es';
+  if(/\b(portugues|portuguese)\b/.test(norm)) return 'pt';
   return null;
 }
 const LANG_SWITCH_MSG = {
@@ -828,8 +828,22 @@ const LANG_SWITCH_MSG = {
   es: "¡Claro! Seguimos en español. 🇪🇸",
   en: "Sure! Let's continue in English. 🇬🇧"
 };
-function routeIntent(intent){
+function isClosedDayMention(norm){
+  return /\b(quinta|quinta-feira|jueves|thursday)\b/.test(norm);
+}
+function isTodayClosed(){
+  return new Date().getDay() === 4;
+}
+const CLOSED_DAY_MSG = {
+  pt: "Nesse dia (quinta-feira) estamos encerrados — dia de descanso da equipa. Posso ajudar a encomendar ou reservar para outro dia?",
+  es: "Ese día (jueves) estamos cerrados — día de descanso del equipo. ¿Te ayudo a pedir o reservar para otro día?",
+  en: "That day (Thursday) we're closed — staff rest day. Want to order or book for a different day instead?"
+};
+function routeIntent(intent, norm){
   const L = currentLang;
+  if((intent === 'order' || intent === 'reserve') && (isClosedDayMention(norm) || isTodayClosed())){
+    return botSay(CLOSED_DAY_MSG[L]);
+  }
   switch(intent){
     case 'order': return startOrderFlow();
     case 'reserve': return startReserveFlow();
@@ -864,6 +878,10 @@ function pickTime(key){
   botSay(BOT[currentLang].ask_name_order);
 }
 function useCustomTime(text){
+  if(isClosedDayMention(normalize(text))){
+    botSay(CLOSED_DAY_MSG[currentLang]);
+    return;
+  }
   flow.data.time = text.trim();
   flow.step = 'name';
   botSay(BOT[currentLang].ask_name_order);
@@ -883,12 +901,21 @@ function pickPeople(val){
   });
 }
 function pickDay(key){
+  if(key === 'today' && isTodayClosed()){
+    botSay(CLOSED_DAY_MSG[currentLang]);
+    addQuickReplies(DAY_OPTIONS.map(d => ({ label: d.label[currentLang], value: d.key })), pickDay);
+    return;
+  }
   const opt = DAY_OPTIONS.find(d => d.key === key);
   flow.data.day = opt.label[currentLang];
   flow.step = 'name';
   botSay(BOT[currentLang].ask_name_reserve);
 }
 function useCustomDay(text){
+  if(isClosedDayMention(normalize(text))){
+    botSay(CLOSED_DAY_MSG[currentLang]);
+    return;
+  }
   flow.data.day = text.trim();
   flow.step = 'name';
   botSay(BOT[currentLang].ask_name_reserve);
@@ -976,7 +1003,7 @@ function sendMessage(text){
     return;
   }
 
-  routeIntent(detectIntent(norm0));
+  routeIntent(detectIntent(norm0), norm0);
 }
 
 sendBtn.addEventListener('click', () => sendMessage(input.value));
